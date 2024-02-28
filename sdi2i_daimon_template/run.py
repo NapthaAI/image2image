@@ -41,9 +41,9 @@ def run(job: InputSchema):
     url = f"{STABILITY_API_HOST}/v1/generation/{DEFAULT_ENGINE}/image-to-image"
 
     
-    if job.image_path:
+    if job.input_dir:
         # read the folder and get the first image
-        image_path = glob(f"{job.image_path}/*")[0]
+        image_path = glob(f"{job.input_dir}/*")[0]
 
         # open and resize the image 1024x1024
         image = Image.open(image_path)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # try with image_path
     input = InputSchema(
         prompt="A beautiful sunset over the ocean",
-        image_path="./input_folder",
+        input_dir="./input_folder",
         output_path="output_folder"
     )
 
