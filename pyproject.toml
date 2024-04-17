@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "sdi2i-daimon-template"
+name = "image_to_image"
 version = "0.1.0"
 description = ""
 authors = ["moarshy <marshath@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "sdi2i_daimon_template", from = "." }
+    { include = "image_to_image", from = "." }
 ]
 
 [tool.poetry.dependencies]

@@ -7,7 +7,7 @@ from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from dotenv import load_dotenv
-from sdi2i_daimon_template.schemas import InputSchema
+from image_to_image.schemas import InputSchema
 
 
 load_dotenv()
