@@ -1,3 +1,11 @@
+inputs:
+    save: false
+    location: ipfs
+
+outputs:
+    save: true
+    location: node
+
 implementation:
     package:
         entrypoint: run.py

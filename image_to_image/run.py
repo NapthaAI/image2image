@@ -28,7 +28,7 @@ def get_logger(__name__):
 
 logger = get_logger(__name__)
 
-def run(job: InputSchema):
+def run(job: InputSchema, cfg: dict = None, **kwargs):
     logger.info(f"Running job with prompt: {job.prompt}")
 
     # Get api key from environment variable
