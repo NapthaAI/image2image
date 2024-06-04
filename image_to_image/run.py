@@ -1,6 +1,5 @@
 import os
 import base64
-import logging
 import requests
 from glob import glob
 from PIL import Image
@@ -8,28 +7,18 @@ from io import BytesIO
 from pathlib import Path
 from dotenv import load_dotenv
 from image_to_image.schemas import InputSchema
-
+from naptha_sdk.utils import get_logger
+from typing import Dict
 
 load_dotenv()
 STABILITY_API_HOST = "https://api.stability.ai"
 DEFAULT_FILENAME = "output.png"
 DEFAULT_ENGINE = "stable-diffusion-xl-1024-v1-0"
 
-def get_logger(__name__):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
-
-
 logger = get_logger(__name__)
 
-def run(job: InputSchema, cfg: dict = None, **kwargs):
-    logger.info(f"Running job with prompt: {job.prompt}")
+def run(inputs: InputSchema, worker_nodes = None, orchestrator_node = None, flow_run = None, cfg: Dict = None):
+    logger.info(f"Running module with prompt: {inputs.prompt}")
 
     # Get api key from environment variable
     api_key = os.environ['STABILITY_KEY']
@@ -41,9 +30,9 @@ def run(job: InputSchema, cfg: dict = None, **kwargs):
     url = f"{STABILITY_API_HOST}/v1/generation/{DEFAULT_ENGINE}/image-to-image"
 
     
-    if job.input_dir:
+    if inputs.input_dir:
         # read the folder and get the first image
-        image_path = glob(f"{job.input_dir}/*")[0]
+        image_path = glob(f"{inputs.input_dir}/*")[0]
 
         # open and resize the image 1024x1024
         image = Image.open(image_path)
@@ -57,9 +46,9 @@ def run(job: InputSchema, cfg: dict = None, **kwargs):
             "init_image": open(image_path, "rb")
         }
 
-    elif job.image:
+    elif inputs.image:
         # convert from base64 to image
-        image = Image.open(BytesIO(base64.b64decode(job.image)))
+        image = Image.open(BytesIO(base64.b64decode(inputs.image)))
 
         # resize the image 1024x1024
         image = image.resize((1024, 1024))
@@ -86,7 +75,7 @@ def run(job: InputSchema, cfg: dict = None, **kwargs):
         data={
             "image_strength": 0.35,
             "init_image_mode": "IMAGE_STRENGTH",
-            "text_prompts[0][text]": job.prompt,
+            "text_prompts[0][text]": inputs.prompt,
             "cfg_scale": 7,
             "samples": 1,
             "steps": 30,
@@ -102,8 +91,8 @@ def run(job: InputSchema, cfg: dict = None, **kwargs):
     image_b64 = result['artifacts'][0]['base64']
     image = Image.open(BytesIO(base64.b64decode(image_b64)))
 
-    if job.output_path:
-        output_path = job.output_path
+    if inputs.output_path:
+        output_path = inputs.output_path
         Path(output_path).mkdir(parents=True, exist_ok=True)
         image.save(f"{output_path}/{DEFAULT_FILENAME}")
 
