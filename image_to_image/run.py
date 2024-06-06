@@ -21,7 +21,7 @@ def run(inputs: InputSchema, worker_nodes = None, orchestrator_node = None, flow
     logger.info(f"Running module with prompt: {inputs.prompt}")
 
     # Get api key from environment variable
-    api_key = os.environ['STABILITY_KEY']
+    api_key = os.environ['STABILITY_API_KEY']
 
     if api_key is None:
         raise ValueError("API key is not set")
