@@ -17,7 +17,7 @@ DEFAULT_ENGINE = "stable-diffusion-xl-1024-v1-0"
 
 logger = get_logger(__name__)
 
-def run(inputs: InputSchema, worker_nodes = None, orchestrator_node = None, flow_run = None, cfg: Dict = None):
+def run(inputs: InputSchema, *args, **kwargs):
     logger.info(f"Running module with prompt: {inputs.prompt}")
 
     # Get api key from environment variable
