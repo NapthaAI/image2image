@@ -78,8 +78,8 @@ def run(agent_run: AgentRunInput, *args, **kwargs):
     image_b64 = result['artifacts'][0]['base64']
     image = Image.open(BytesIO(base64.b64decode(image_b64)))
 
-    if agent_run.inputs.output_path:
-        output_path = agent_run.inputs.output_path
+    if agent_run.agent_deployment.data_generation_config.save_outputs_path:
+        output_path = agent_run.agent_deployment.data_generation_config.save_outputs_path
         Path(output_path).mkdir(parents=True, exist_ok=True)
         image.save(f"{output_path}/{DEFAULT_FILENAME}")
 
