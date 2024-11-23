@@ -1,24 +1,25 @@
 import os
 import base64
 import requests
+import logging
 from glob import glob
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from dotenv import load_dotenv
 from image_to_image.schemas import InputSchema
-from naptha_sdk.utils import get_logger
-from typing import Dict
+from naptha_sdk.schemas import AgentRunInput
+
 
 load_dotenv()
 STABILITY_API_HOST = "https://api.stability.ai"
 DEFAULT_FILENAME = "output.png"
 DEFAULT_ENGINE = "stable-diffusion-xl-1024-v1-0"
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
-def run(inputs: InputSchema, *args, **kwargs):
-    logger.info(f"Running module with prompt: {inputs.prompt}")
+def run(agent_run: AgentRunInput, *args, **kwargs):
+    logger.info(f"Running module with prompt: {agent_run.inputs.prompt}")
 
     # Get api key from environment variable
     api_key = os.environ['STABILITY_API_KEY']
@@ -30,9 +31,9 @@ def run(inputs: InputSchema, *args, **kwargs):
     url = f"{STABILITY_API_HOST}/v1/generation/{DEFAULT_ENGINE}/image-to-image"
 
     
-    if inputs.input_dir:
+    if agent_run.inputs.input_dir:
         # read the folder and get the first image
-        image_path = glob(f"{inputs.input_dir}/*")[0]
+        image_path = glob(f"{agent_run.inputs.input_dir}/*")[0]
 
         # open and resize the image 1024x1024
         image = Image.open(image_path)
@@ -46,22 +47,8 @@ def run(inputs: InputSchema, *args, **kwargs):
             "init_image": open(image_path, "rb")
         }
 
-    elif inputs.image:
-        # convert from base64 to image
-        image = Image.open(BytesIO(base64.b64decode(inputs.image)))
-
-        # resize the image 1024x1024
-        image = image.resize((1024, 1024))
-        
-        # add to tempfile 
-        image_path = "/tmp/init_image.png"
-        image.save(image_path)
-
-        files={
-            "init_image": open(image_path, "rb")
-        }
     else:
-        raise ValueError("No image provided")
+        raise ValueError("No image provided. Must provide an input directory with an image")
     
 
     
@@ -75,7 +62,7 @@ def run(inputs: InputSchema, *args, **kwargs):
         data={
             "image_strength": 0.35,
             "init_image_mode": "IMAGE_STRENGTH",
-            "text_prompts[0][text]": inputs.prompt,
+            "text_prompts[0][text]": agent_run.inputs.prompt,
             "cfg_scale": 7,
             "samples": 1,
             "steps": 30,
@@ -91,8 +78,8 @@ def run(inputs: InputSchema, *args, **kwargs):
     image_b64 = result['artifacts'][0]['base64']
     image = Image.open(BytesIO(base64.b64decode(image_b64)))
 
-    if inputs.output_path:
-        output_path = inputs.output_path
+    if agent_run.inputs.output_path:
+        output_path = agent_run.inputs.output_path
         Path(output_path).mkdir(parents=True, exist_ok=True)
         image.save(f"{output_path}/{DEFAULT_FILENAME}")
 
